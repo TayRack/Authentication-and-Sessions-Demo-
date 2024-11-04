@@ -23,6 +23,28 @@ router.post("/signup", async function (req, res) {
   const enteredConfirmEmail = userData["confirm-email"];
   const enteredPassword = userData.password;
 
+  if (
+    !enteredEmail ||
+    !enteredConfirmEmail ||
+    !enteredPassword ||
+    enteredPassword.trim().length < 8 ||
+    enteredEmail !== enteredConfirmEmail ||
+    !enteredEmail.includes('@')
+  ) {
+    console.log("Invalid data");
+    return res.redirect('/signup');
+  }
+
+  const existingUser = await db
+    .getDb()
+    .collection("users")
+    .findOne({ email: enteredEmail });
+
+  if (existingUser) {
+    console.log('User already exists');
+    return res.redirect('/signup');
+  }
+
   const hashedPassword = await bcrypt.hash(enteredPassword, 12);
 
   const user = {
@@ -47,7 +69,7 @@ router.post("/login", async function (req, res) {
 
   if (!existingUser) {
     console.log("Login failed! - user not found in database");
-    return res.redirect("login");
+    return res.redirect("/login");
   }
 
   const passwordsAreEqual = await bcrypt.compare(
@@ -56,12 +78,12 @@ router.post("/login", async function (req, res) {
   );
 
   if (!passwordsAreEqual) {
-    console.log('Login Failed! - incorrect password')
-    return res.redirect('/login');
+    console.log("Login Failed! - incorrect password");
+    return res.redirect("/login");
   }
 
-  console.log('User authentication is successful!');
-  res.redirect('/admin');
+  console.log("User authentication is successful!");
+  res.redirect("/admin");
 });
 
 router.get("/admin", function (req, res) {

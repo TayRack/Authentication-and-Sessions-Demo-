@@ -29,10 +29,10 @@ router.post("/signup", async function (req, res) {
     !enteredPassword ||
     enteredPassword.trim().length < 8 ||
     enteredEmail !== enteredConfirmEmail ||
-    !enteredEmail.includes('@')
+    !enteredEmail.includes("@")
   ) {
     console.log("Invalid data");
-    return res.redirect('/signup');
+    return res.redirect("/signup");
   }
 
   const existingUser = await db
@@ -41,8 +41,8 @@ router.post("/signup", async function (req, res) {
     .findOne({ email: enteredEmail });
 
   if (existingUser) {
-    console.log('User already exists');
-    return res.redirect('/signup');
+    console.log("User already exists");
+    return res.redirect("/signup");
   }
 
   const hashedPassword = await bcrypt.hash(enteredPassword, 12);
@@ -84,20 +84,28 @@ router.post("/login", async function (req, res) {
 
   console.log("User authentication is successful!");
 
-  req.session.user = {id: existingUser._id.toString(), email: existingUser.email };
+  req.session.user = {
+    id: existingUser._id.toString(),
+    email: existingUser.email,
+  };
   req.session.isAuthenticated = true;
   req.session.save(function () {
-    res.redirect('/admin');
+    res.redirect("/admin");
   });
 });
 
 router.get("/admin", function (req, res) {
-  if (!req.session.isAuthenticated) { // if (!req.session.user)
-    return res.status(401).render('401');
+  if (!req.session.isAuthenticated) {
+    // if (!req.session.user)
+    return res.status(401).render("401");
   }
-  res.render('admin');
+  res.render("admin");
 });
 
-router.post('/logout', function (req, res) {});
+router.post("/logout", function (req, res) {
+  req.session.user = null;
+  req.session.isAuthenticated = false;
+  res.redirect("/");
+});
 
 module.exports = router;
